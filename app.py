@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -24,8 +24,12 @@ hesitant_vs_SVI = go.Bar(x=stats_df["SVI Category"], y=stats_df["Estimated hesit
 fig1 = go.Figure(hesitant_vs_SVI)
 
 fig2_data = master_df.copy()
-fig2_data = fig2_data.groupby('State', as_index = False).sum()
-fig2 = px.scatter(fig2_data, x= "Estimated hesitant" , y = "deaths", color = "State")
+fig2_data = fig2_data.groupby('State', as_index = False).mean()
+fig2 = px.scatter(fig2_data, x= "Estimated hesitant" , y = "cases", color = "State")
+fig2.update_traces(marker=dict(size=10,
+                              line=dict(width=2,
+                                        color='DarkSlateGrey')),
+                  selector=dict(mode='markers'))
 
 fig1.update_layout(xaxis={'categoryorder':'array', 'categoryarray':vulnerability_order},title={
         'text': "Hesitancy by Social Vulnerability Category",
@@ -35,22 +39,39 @@ fig1.update_layout(xaxis={'categoryorder':'array', 'categoryarray':vulnerability
         'yanchor': 'top'})
 
 fig2.update_layout(xaxis={'categoryorder':'array', 'categoryarray':vulnerability_order},title={
-        'text': "Number of COVID-19 Cases vs. Estimated Vaccine Acceptance",
+        'text': "Number of COVID-19 Cases vs. Estimated Vaccine Hesistance by State.",
         'y':0.9,
         'x':0.5,
         'xanchor': 'center',
         'yanchor': 'top'})
 
+fig3_data = master_df.groupby('State', as_index = False).mean()
+
+fig3 = px.scatter(fig3_data, x= "Estimated hesitant" , y = "Social Vulnerability Index (SVI)", color = "State")
+fig3.update_layout(title={
+        'text': "SVI vs. Estimated Vaccine Hesistance by State.",
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
+fig3.update_traces(marker=dict(size=10,
+                              line=dict(width=2,
+                                        color='DarkSlateGrey')),
+                  selector=dict(mode='markers'))   
 app.layout = html.Div(children=[
-    html.H1(children='Vaccine Hesitancy - Team 5'),
+    html.H1(children='Exploring Vaccine Hesitancy in the United States', style={'text-align':'center'}),
     dcc.Graph(
         id='hesitant_vs_SVI',
         figure=fig1,
     ),
+     dcc.Graph(
+        id='sc',
+        figure=fig3,
+    ),
       dcc.Graph(
         id='scatter',
         figure=fig2,
-    )
+    ),
 ])
 
 if __name__ == '__main__':
